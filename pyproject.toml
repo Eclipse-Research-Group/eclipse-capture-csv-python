@@ -1,0 +1,18 @@
+[project]
+name = "eclipse_capture"
+version = "0.0.1"
+authors = [
+  { name="Maris Usis", email="mau13@case.edu" },
+]
+description = "Python 3 library to work with eclipse capture files"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/Eclipse-Research-Group/eclipse-capture-python"
+Issues = "https://github.com/Eclipse-Research-Group/eclipse-capture-python/issues"
