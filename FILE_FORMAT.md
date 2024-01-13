@@ -13,14 +13,14 @@ Each line of metadata consists of a metadata key, followed by one or more tab ch
 ### Header format
 ```
 ## BEGIN HEADER
-# FILE		    	<FILENAME>
-# CREATED	        Month DD, YYYY HH:mm:ss UTC
-# NODE		        <NODE_ID>
-# LOCATION		    <CITY>, <STATE/REGION>
-# GPS_LOCATION      <LATITUDE decimal>, <LONGITUDE decimal>, <ELEVATION in meters>
-# OPERATOR          <OPERATOR_IDENTIFIER>
-# CAPTURE_ID        <CAPTURE_ID>
-# SOFTWARE_VERSION  <SOFTWARE_VERSION>
+# FILE				<FILENAME>
+# CREATED			Month DD, YYYY HH:mm:ss UTC
+# NODE				<NODE_ID>
+# LOCATION			<CITY>, <STATE/REGION>
+# GPS_LOCATION		<LATITUDE decimal>, <LONGITUDE decimal>, <ELEVATION in meters>
+# OPERATOR			<OPERATOR_IDENTIFIER>
+# CAPTURE_ID		<CAPTURE_ID>
+# SOFTWARE_VERSION	<SOFTWARE_VERSION>
 ## END HEADER
 ```
 
