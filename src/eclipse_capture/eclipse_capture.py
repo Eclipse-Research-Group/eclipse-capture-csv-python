@@ -26,6 +26,7 @@ class EclipseCaptureFileInfo:
     PATTERN_METADATA_START = r"## BEGIN METADATA ##"
     PATTERN_METADATA_END = r"## END METADATA ##"
     PATTERN_METADATA = r"# ([A-Z_]+)\s+(.+)"
+    PATTERN_FILENAME = r"(\d{8}_\d{6})-(\d{8}_\d{6})_(E[A-Z]\d{4})_([a-fA-F0-9]{8})"
     
     def __init__(self, start: datetime, 
                  end: datetime, 
@@ -38,6 +39,9 @@ class EclipseCaptureFileInfo:
         self.node_id = node_id
         self.sample_rate = sample_rate
         pass
+
+    def __repr__(self):
+        return "EclipseCaptureFileInfo(%s, %s, %s, %s, %s)" % (self.start, self.end, self.capture_id, self.node_id, self.sample_rate)
 
     def validate(text: str):
         pass
@@ -72,7 +76,6 @@ class EclipseCaptureFileInfo:
             if match:
                 (key, value) = match.groups()
                 metadata[key] = value
-                print(key, value)
                 continue
 
             if re.match(EclipseCaptureFileInfo.PATTERN_METADATA_END, line):
@@ -104,6 +107,16 @@ class EclipseCaptureFileInfo:
 
         return EclipseCaptureFileInfo(start, end, capture_id, node_id, sample_rate)
 
+    def parse_filename(filename: str):
+        match = re.match(EclipseCaptureFileInfo.PATTERN_FILENAME, filename)
+
+        if not match:
+            raise Exception("Invalid filename", filename)
+
+        (start, end, node_id, capture_id) = match.groups()
+
+        return (start, end, node_id, capture_id)
+
     def generate_header(self):
         header = EclipseCaptureFileInfo.METADATA_START + "\n"
 
@@ -127,6 +140,10 @@ class EclipseCaptureFile:
         self.file_path = file_path
         self.info = info
         pass
+
+    def append_line(self, line: str):
+        with open(self.file_path, 'a') as f:
+            f.write(line)
 
     def load(file_path: str):
         print("Loading file %s" % file_path)

@@ -63,7 +63,47 @@ def generate(location, node, capture_id, file, start, end):
             counter += 1
 
 
+@click.command()
+@click.argument('filename')
+def info(filename):
+    with open(filename, 'r') as f:
+        header_text = ""
+
+        while True:
+            line = f.readline()
+            if not line:
+                break
+
+            if line.startswith("#"):
+                header_text += line
+                continue
+        
+            break
+
+        line_count = 0
+
+        while True:
+            line = f.readline()
+            if not line:
+                break
+
+            line_count += 1
+    
+    info = EclipseCaptureFileInfo.parse_metadata(header_text)
+    print(f"Info for file \"{filename}\"")
+    duration = info.end - info.start
+    utc = timezone("UTC")
+    print("{start} -> {end}, total duration is {duration}"
+          .format(start=info.start.astimezone(utc).strftime('%H:%M:%S %B %d, %Y UTC'),
+                    end=info.end.astimezone(utc).strftime('%H:%M:%S %B %d, %Y UTC'),
+                    duration=duration))
+    
+    print(f"Found {line_count} lines")
+
+    
+
 cli.add_command(generate)
+cli.add_command(info)
 
 if __name__ == '__main__':
     cli()
