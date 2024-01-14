@@ -9,7 +9,7 @@ readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Operating System :: OS Independent",
 ]
 dependencies = [
@@ -20,3 +20,6 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/Eclipse-Research-Group/eclipse-capture-python"
 Issues = "https://github.com/Eclipse-Research-Group/eclipse-capture-python/issues"
+
+[project.optional-dependencies]
+dev = ["bumpver"]
