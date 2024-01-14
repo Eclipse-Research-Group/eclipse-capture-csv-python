@@ -4,4 +4,4 @@ class EclipseCapture:
         pass
 
     def hello_world(self):
-        print("Hello World!")
+        return "Hello World!"
