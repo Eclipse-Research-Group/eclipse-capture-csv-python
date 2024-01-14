@@ -14,7 +14,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.11", "3.12"]
+        python-version: ["3.11"]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -56,13 +56,21 @@ jobs:
         with:
           name: python-package-distributions
           path: dist/
-  # publish:
-  #   name: Publish package
-  #   runs-on: [ubuntu-latest]
-  #   needs: build
-  #   steps:
-  #     - name: Publish
-  #       uses: pypa/gh-action-pypi-publish@release/v1
-  #       with:
-  #         user: __token__
-  #         password: ${{ secrets.PYPI_API_TOKEN }}
+  publish:
+    name: >-
+      Publish Python 🐍 distribution 📦 to PyPI
+    runs-on: [ubuntu-latest]
+    needs: build
+    environment:
+      name: pypi
+      url: https://pypi.org/p/<package-name>  # Replace <package-name> with your PyPI project name
+    permissions:
+      id-token: write  # IMPORTANT: mandatory for trusted publishing
+    steps:
+      - name: Download all the dists
+        uses: actions/download-artifact@v3
+        with:
+          name: python-package-distributions
+          path: dist/
+      - name: Publish distribution 📦 to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
