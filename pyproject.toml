@@ -22,4 +22,9 @@ Homepage = "https://github.com/Eclipse-Research-Group/eclipse-capture-python"
 Issues = "https://github.com/Eclipse-Research-Group/eclipse-capture-python/issues"
 
 [project.optional-dependencies]
-dev = ["bumpver"]
+test = [
+    "pytest==7.4.4"
+]
+dev = [
+  "bumpver"
+]
