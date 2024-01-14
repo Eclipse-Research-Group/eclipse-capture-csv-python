@@ -21,6 +21,8 @@ Each line of metadata consists of a metadata key, followed by one or more tab ch
 # OPERATOR			<OPERATOR_IDENTIFIER>
 # CAPTURE_ID		<CAPTURE_ID>
 # SOFTWARE_VERSION	<SOFTWARE_VERSION>
+# DATETIME_START    <START_DATETIME>
+# DATETIME_END      <END_DATETIME>
 ## END HEADER
 ```
 
@@ -34,6 +36,8 @@ Each line of metadata consists of a metadata key, followed by one or more tab ch
 - `OPERATOR`: An identifier for the node operator. Could be a station callsign or a personal callsign.
 - `CAPTURE_ID`: The identification code for a group of files that together form a single capture.
 - `SOFTWARE_VERSION`: The version of the software used for the capture.
+- `DATETIME_START`: The start time of the capture in seconds since the Unix Epoch (midnight, January 1, 1970).
+- `DATETIME_END`: The end time of the capture in seconds since the Unix Epoch (midnight, January 1, 1970).
 
 ## Data section
 

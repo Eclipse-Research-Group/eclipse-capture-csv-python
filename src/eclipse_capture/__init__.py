@@ -1,1 +1,1 @@
-from .eclipse_capture import EclipseCapture
+from .eclipse_capture import *
