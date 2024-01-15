@@ -34,7 +34,10 @@ def generate(location, node, capture_id, file, start, end):
 
     current_time = dt_start
     sample_rate = header.sample_rate
-    duration = 30
+    pulse_duration = 20
+    after_length = 10
+
+    print("Samples per line = %d" % (sample_rate * pulse_duration / 1000))
 
     filename = file if file else header.filename()
 
@@ -46,10 +49,12 @@ def generate(location, node, capture_id, file, start, end):
         while current_time < dt_end:
             delay = (random.random() * 1)+4
             
-            t_data = np.arange(0, (duration-delay)/1000, 1/sample_rate)
-            intensity = np.power(np.sin(counter/40), 2) + (random.random()/2.0 - 1.0) * 0.5
+            t_data = np.arange(0, (pulse_duration)/1000, 1/sample_rate)
+            intensity = np.power(np.abs(np.sin(counter/40)), 1) 
+            intensity = intensity + np.random.normal(0, 0.3, len(t_data))
             y_data = np.sin(2*np.pi*1000*t_data) * intensity
-            data = np.concatenate([np.zeros(int(delay * sample_rate / 1000)), y_data])
+            data = np.concatenate([np.random.normal(0, 0.2, int(delay * sample_rate / 1000)), y_data])
+            data = np.concatenate([data, np.random.normal(0, 0.2, int((after_length - delay) * sample_rate / 1000))])
             data = np.round(data * 512 + 512).astype(int)
 
             f.write("%f," % (current_time.timestamp() + (random.random()/2.0 - 1.0)))
@@ -61,7 +66,6 @@ def generate(location, node, capture_id, file, start, end):
 
             current_time += dt.timedelta(seconds = 1)
             counter += 1
-
 
 @click.command()
 @click.argument('filename')

@@ -1,15 +1,13 @@
 import re
 from datetime import datetime
 from pytz import timezone
+import numpy as np
 import uuid
 
 class EclipseCapture:
 
     def __init__(self):
         pass
-
-    def hello_world(self):
-        return "Hello World!"
     
 class EclipseCaptureLine:
     def __init__(self, time, data):
@@ -18,6 +16,24 @@ class EclipseCaptureLine:
 
     def generate_line(self) -> str:
         return "%f," % self.time + ",".join([str(x) for x in self.data])
+    
+    def parse_line(text: str):
+        parts = text.split(",")
+        # it = iter(parts)
+        time = float(parts[0])
+
+        data = []
+
+        for i in range(1, len(parts)):
+            if parts[i] == "":
+                data.append(0)
+                continue
+
+            data.append(float(parts[i]))
+
+        data = (np.array(data) - 512.0)/512.0
+        return EclipseCaptureLine(time, data)
+
     
 class EclipseCaptureFileInfo:
 
@@ -139,11 +155,8 @@ class EclipseCaptureFile:
     def __init__(self, file_path: str, info: EclipseCaptureFileInfo):
         self.file_path = file_path
         self.info = info
+        self.lines = []
         pass
-
-    def append_line(self, line: str):
-        with open(self.file_path, 'a') as f:
-            f.write(line)
 
     def load(file_path: str):
         print("Loading file %s" % file_path)
@@ -163,5 +176,29 @@ class EclipseCaptureFile:
                 break
 
             header = EclipseCaptureFileInfo.parse_metadata(header_text)
+            file = EclipseCaptureFile(file_path, header)
 
-        return EclipseCaptureFile(file_path, header)
+        return file
+    
+    def load_all_lines(self):
+        self.lines = []
+        with open(self.file_path, 'r') as f:
+            while True:
+                line = f.readline()
+
+                if not line:
+                    break
+
+                if line.startswith("#"):
+                    continue
+
+                self.lines.append(EclipseCaptureLine.parse_line(line))
+
+
+class EclipseCaptureFileWriter:
+
+    def __init__(self, file_path: str, info: EclipseCaptureFileInfo):
+        self.file_path = file_path
+        self.info = info
+        self.lines = []
+        pass
