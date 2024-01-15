@@ -1,6 +1,6 @@
 [project]
-name = "eclipse_capture"
-version = "0.1.0"
+name = "heartbeat-capture"
+version = "0.2.0"
 authors = [
   { name="Maris Usis", email="mau13@case.edu" },
 ]

@@ -61,7 +61,7 @@ jobs:
     needs: build
     environment:
       name: pypi
-      url: https://pypi.org/p/eclipse-capture  # Replace <package-name> with your PyPI project name
+      url: https://pypi.org/p/hbcap  # Replace <package-name> with your PyPI project name
     permissions:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
     steps:
