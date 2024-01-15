@@ -1,4 +1,4 @@
-# Eclipse Monitoring Capture File Definition
+# Heartbeat Capture File Definition
 
 ## Filename
 `<START_DATETIME>-<END_DATETIME>_<NODE_ID>-<CAPTURE_ID>.csv`
