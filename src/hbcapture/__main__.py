@@ -3,7 +3,7 @@ import datetime as dt
 import numpy as np
 import random
 import uuid
-from . import EclipseCaptureFileInfo
+from . import HeartbeatCaptureFileInfo
 from pytz import timezone
 
 @click.group()
@@ -23,10 +23,10 @@ def generate(location, node, capture_id, file, start, end):
 
     capture_id = uuid.UUID(capture_id)
 
-    print("Generating eclipse capture file from %s to %s" % (dt_start, dt_end))
+    print("Generating Heartbeat capture file from %s to %s" % (dt_start, dt_end))
     print("Will generate %d lines" % (dt_end - dt_start).total_seconds())
 
-    header = EclipseCaptureFileInfo(start=dt_start, 
+    header = HeartbeatCaptureFileInfo(start=dt_start, 
                                   end=dt_end, 
                                   capture_id=capture_id,
                                   node_id=node,
@@ -93,7 +93,7 @@ def info(filename):
 
             line_count += 1
     
-    info = EclipseCaptureFileInfo.parse_metadata(header_text)
+    info = HeartbeatCaptureFileInfo.parse_metadata(header_text)
     print(f"Info for file \"{filename}\"")
     duration = info.end - info.start
     utc = timezone("UTC")
