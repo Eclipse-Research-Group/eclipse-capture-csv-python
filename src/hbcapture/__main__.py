@@ -3,7 +3,7 @@ import datetime as dt
 import numpy as np
 import random
 import uuid
-from . import HeartbeatCaptureFileInfo
+from . import HeartbeatCaptureFileInfo, HeartbeatCaptureWriter, HeartbeatCaptureLine
 from pytz import timezone
 
 @click.group()
@@ -26,11 +26,16 @@ def generate(location, node, capture_id, file, start, end):
     print("Generating Heartbeat capture file from %s to %s" % (dt_start, dt_end))
     print("Will generate %d lines" % (dt_end - dt_start).total_seconds())
 
+    sample_rate = 21010
+
     header = HeartbeatCaptureFileInfo(start=dt_start, 
                                   end=dt_end, 
                                   capture_id=capture_id,
                                   node_id=node,
-                                  sample_rate=20000)
+                                  sample_rate=sample_rate)
+    
+    writer = HeartbeatCaptureWriter("./", 20000, "ET1234")
+    writer.init()
 
     current_time = dt_start
     sample_rate = header.sample_rate
@@ -56,6 +61,8 @@ def generate(location, node, capture_id, file, start, end):
             data = np.concatenate([np.random.normal(0, 0.2, int(delay * sample_rate / 1000)), y_data])
             data = np.concatenate([data, np.random.normal(0, 0.2, int((after_length - delay) * sample_rate / 1000))])
             data = np.round(data * 512 + 512).astype(int)
+
+            writer.write_line(HeartbeatCaptureLine(current_time, data))
 
             f.write("%f," % (current_time.timestamp() + (random.random()/2.0 - 1.0)))
 
