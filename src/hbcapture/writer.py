@@ -120,13 +120,11 @@ class HeartbeatCaptureWriterPackager:
 
 
     def package(self):
-        print(f"Using {self.root_dir} as root directoryaaa")
         ls = os.listdir(self.root_dir)
         ls.sort()
 
         for file in ls:
             if file.startswith(f"hbcapture_{self.capture_id}_DATA"):
-                print(file)
                 match = re.match(HeartbeatCaptureWriterPackager.PATTERN_FILENAME, file)
                 (capture_id, type, index) = match.groups()
 
@@ -134,8 +132,6 @@ class HeartbeatCaptureWriterPackager:
                 header_path = os.path.join(self.root_dir,
                                             f"hbcapture_{capture_id}_HEADER_{index}")
                 header_exists = os.path.isfile(header_path)
-
-                print(header_path)
 
                 if not header_exists:
                     raise Exception(f"Header file hbcapture_{capture_id}_HEADER_{index} not found")
@@ -150,7 +146,6 @@ class HeartbeatCaptureWriterPackager:
 
 
                 output_file = os.path.join(self.root_dir, file_info.filename())
-                print(f"OUTPUT: {output_file}")
                 with open(output_file, 'w') as f:
                     f.write(header[:-1])
                     f.write(data[:-1])

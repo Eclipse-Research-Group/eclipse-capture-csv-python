@@ -71,8 +71,6 @@ def generate(location, node, capture_id, file, start, end):
                 print("Processed %d lines" % counter)
 
     packager = HeartbeatCaptureWriterPackager.from_writer(writer)
-    print(packager)
-    # packager.a()
     packager.package()
 
 @click.command()
