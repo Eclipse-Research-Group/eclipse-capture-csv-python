@@ -1,5 +1,6 @@
 import click
 import datetime as dt
+from hbcapture.writer import HeartbeatCaptureWriterPackager
 import numpy as np
 import random
 import uuid
@@ -34,21 +35,17 @@ def generate(location, node, capture_id, file, start, end):
                                   node_id=node,
                                   sample_rate=sample_rate)
     
-    writer = HeartbeatCaptureWriter("./", 20000, "ET1234")
-    writer.init()
+    node_id = "ET1234"
+    capture_id = uuid.uuid4()
+    
+    with HeartbeatCaptureWriter("./generated",  sample_rate, capture_id, node_id) as writer:
 
-    current_time = dt_start
-    sample_rate = header.sample_rate
-    pulse_duration = 20
-    after_length = 10
+        current_time = dt_start
+        sample_rate = header.sample_rate
+        pulse_duration = 20
+        after_length = 10
 
-    print("Samples per line = %d" % (sample_rate * pulse_duration / 1000))
-
-    filename = file if file else header.filename()
-
-    with open(filename, 'w') as f:
-        f.write(header.generate_header())
-
+        print("Samples per line = %d" % (sample_rate * pulse_duration / 1000))
         counter = 0
 
         while current_time < dt_end:
@@ -61,18 +58,22 @@ def generate(location, node, capture_id, file, start, end):
             data = np.concatenate([np.random.normal(0, 0.2, int(delay * sample_rate / 1000)), y_data])
             data = np.concatenate([data, np.random.normal(0, 0.2, int((after_length - delay) * sample_rate / 1000))])
             data = np.round(data * 512 + 512).astype(int)
-
-            writer.write_line(HeartbeatCaptureLine(current_time, data))
-
-            f.write("%f," % (current_time.timestamp() + (random.random()/2.0 - 1.0)))
-
-            for index in range(len(data) - 1):
-                f.write("%d," % data[index])
-                
-            f.write("%d\n" % data[-1])
+            
+            time = current_time + dt.timedelta(milliseconds= random.random() * 1000 / 2.0)
+            # time = current_time
+            writer.write_line(HeartbeatCaptureLine(time, data))
 
             current_time += dt.timedelta(seconds = 1)
             counter += 1
+
+            if counter % 20 == 0:
+                writer.next_file()
+                print("Processed %d lines" % counter)
+
+    packager = HeartbeatCaptureWriterPackager.from_writer(writer)
+    print(packager)
+    # packager.a()
+    packager.package()
 
 @click.command()
 @click.argument('filename')
