@@ -6,7 +6,7 @@ import uuid
 import os
 
 class HeartbeatCaptureLine:
-    def __init__(self, time, data):
+    def __init__(self, time: datetime, data):
         self.time = time
         self.data = data
 

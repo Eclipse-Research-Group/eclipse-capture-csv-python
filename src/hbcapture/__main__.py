@@ -72,6 +72,7 @@ def generate(location, node, capture_id, file, start, end):
 
     packager = HeartbeatCaptureWriterPackager.from_writer(writer)
     packager.package()
+    # packager.clean_up()
 
 @click.command()
 @click.argument('filename')

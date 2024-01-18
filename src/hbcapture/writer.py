@@ -7,10 +7,9 @@ from .file import HeartbeatCaptureLine, HeartbeatCaptureFileInfo
 
 class HeartbeatCaptureWriter:
 
-    def __init__(self, root_dir: str, sample_rate: float, capture_id: uuid, node_id: str):
+    def __init__(self, root_dir: str, sample_rate: float, capture_id: uuid.UUID, node_id: str):
         self.created = datetime.now()
         self.capture_id = uuid.uuid4() if capture_id is None else capture_id
-        print(self.capture_id)
         self.node_id = node_id
         self.sample_rate = sample_rate
         self.root_dir = root_dir
@@ -56,6 +55,12 @@ class HeartbeatCaptureWriter:
 
 
     def write_line(self, line: HeartbeatCaptureLine):
+        """
+        Writes a line of HeartbeatCaptureLine data to the writer file.
+
+        Parameters:
+            line (HeartbeatCaptureLine): The line of HeartbeatCaptureLine data to write.
+        """
         writer_file = self.files[-1]
 
         if writer_file.lines == 0:
@@ -100,6 +105,9 @@ class HeartbeatCaptureWriterFile:
         self.lines = 0
         self.start_time = None
         self.end_time = None
+
+    def __repr__(self):
+        return "HeartbeatCaptureWriterFile(%s, %s, %s)" % (self.capture_id, self.index, self.lines) 
 
     def get_header_filename(self):
         return f"hbcapture_{self.capture_id}_HEADER_{self.index}"
@@ -150,3 +158,11 @@ class HeartbeatCaptureWriterPackager:
                     f.write(header[:-1])
                     f.write(data[:-1])
 
+    def clean_up(self):
+        ls = os.listdir(self.root_dir)
+
+        for file in ls:
+            if file.startswith(f"hbcapture_{self.capture_id}_DATA"):
+                os.remove(os.path.join(self.root_dir, file))
+            elif file.startswith(f"hbcapture_{self.capture_id}_HEAD"):
+                os.remove(os.path.join(self.root_dir, file))
