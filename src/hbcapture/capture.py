@@ -4,6 +4,8 @@ import re
 import pandas as pd
 from .file import HeartbeatCaptureFileInfo, HeartbeatCaptureFile
 
+class CaptureNotFoundException(Exception):
+    pass
 
 class HeartbeatCapture:
 
@@ -37,13 +39,13 @@ class HeartbeatCapture:
 
             self.files.append(HeartbeatCaptureFile.load(os.path.join(self.root_dir, file)))
 
+        if len(self.files) == 0:
+            raise CaptureNotFoundException()
+
         self.sample_rate = self.files[0].info.sample_rate
         self.files.sort(key=lambda x: x.info.start)
-
         self.start = self.files[0].info.start
         self.end = self.files[-1].info.end
-
-        pass
 
     def df_all(self) -> pd.DataFrame:
         items = []

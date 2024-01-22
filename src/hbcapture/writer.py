@@ -4,10 +4,11 @@ import os
 from datetime import datetime
 from .file import HeartbeatCaptureLine, HeartbeatCaptureFileInfo
 
-
 class HeartbeatCaptureWriter:
 
-    def __init__(self, root_dir: str, sample_rate: float, capture_id: uuid.UUID, node_id: str):
+    
+
+    def __init__(self, root_dir: str, capture_id: uuid.UUID, node_id: str, sample_rate: float):
         self.created = datetime.now()
         self.capture_id = uuid.uuid4() if capture_id is None else capture_id
         self.node_id = node_id
@@ -22,37 +23,30 @@ class HeartbeatCaptureWriter:
             self.open = False
 
     def __enter__(self):
-        print(f"Using {self.root_dir} as root directory")
-
-        if not os.path.exists(self.root_dir):
-            os.makedirs(self.root_dir)
-        else:
-            print("Directory %s already exists" % self.root_dir)
-
-        self.current_line = 0
-        self.current_file = 0
-        self.open = True
+        self.init()
 
         return self
     
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if self.open:
-            self.write_header()
-            self.open = False
+        self.done()
     
 
     def init(self):
-        print(f"Using {self.root_dir} as root directory")
-
         if not os.path.exists(self.root_dir):
-            os.makedirs(self.root_dir)
-        else:
-            print("Directory %s already exists" % self.root_dir)
+            raise Exception(f"Root directory {self.root_dir} does not exist")
 
         self.current_line = 0
         self.current_file = 0
         self.open = True
 
+
+    def done(self):
+        if not self.files[-1].has_written:
+            return
+        
+        if self.open:
+            self.write_header()
+            self.open = False
 
     def write_line(self, line: HeartbeatCaptureLine):
         """
@@ -70,6 +64,7 @@ class HeartbeatCaptureWriter:
         with open(os.path.join(self.root_dir, writer_file.get_data_filename()), 'a') as f:
             writer_file.end_time = line.time
             f.write("%s\n" % line.generate_line())
+            writer_file.has_written = True
 
         writer_file.lines += 1
     
@@ -105,6 +100,7 @@ class HeartbeatCaptureWriterFile:
         self.lines = 0
         self.start_time = None
         self.end_time = None
+        self.has_written = False
 
     def __repr__(self):
         return "HeartbeatCaptureWriterFile(%s, %s, %s)" % (self.capture_id, self.index, self.lines) 
@@ -119,7 +115,7 @@ class HeartbeatCaptureWriterFile:
 class HeartbeatCaptureWriterPackager:
     PATTERN_FILENAME = r"hbcapture_([0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12})_(DATA|HEADER)_(\d+)"
 
-    def __init__(self, root_dir: str, capture_id: uuid):
+    def __init__(self, root_dir: str, capture_id: uuid.UUID):
         self.root_dir = root_dir
         self.capture_id = capture_id
 
@@ -151,7 +147,6 @@ class HeartbeatCaptureWriterPackager:
 
                 with open(data_path, 'r') as f:
                     data = f.read()
-
 
                 output_file = os.path.join(self.root_dir, file_info.filename())
                 with open(output_file, 'w') as f:

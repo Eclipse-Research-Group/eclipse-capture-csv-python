@@ -38,11 +38,11 @@ def generate(location, node, capture_id, file, start, end):
     node_id = "ET1234"
     capture_id = uuid.uuid4()
     
-    with HeartbeatCaptureWriter("./generated",  sample_rate, capture_id, node_id) as writer:
+    with HeartbeatCaptureWriter("./generated", capture_id, node_id, sample_rate) as writer:
 
         current_time = dt_start
         sample_rate = header.sample_rate
-        pulse_duration = 20
+        pulse_duration = 300
         after_length = 10
 
         print("Samples per line = %d" % (sample_rate * pulse_duration / 1000))
@@ -66,7 +66,7 @@ def generate(location, node, capture_id, file, start, end):
             current_time += dt.timedelta(seconds = 1)
             counter += 1
 
-            if counter % 20 == 0:
+            if counter % 3602 == 0:
                 writer.next_file()
                 print("Processed %d lines" % counter)
 

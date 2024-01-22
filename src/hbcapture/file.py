@@ -11,25 +11,41 @@ class HeartbeatCaptureLine:
         self.data = data
 
     def generate_line(self) -> str:
+        # data = (self.data * 512) + 512
         return "%f," % self.time.timestamp() + ",".join([str(x) for x in self.data])
     
-    def parse_line(text: str):
-        parts = text.split(",")
-        # it = iter(parts)
-        time = float(parts[0])
+    def to_array(self) -> np.ndarray: 
+        return np.array(self.data)
+    
+    def has_gps_fix(self) -> bool:
+        return self.flags.gps
+    
+    def is_clipping(self) -> bool:
+        return self.flags.clipping
 
-        data = []
 
-        for i in range(1, len(parts)):
-            if parts[i] == "":
-                data.append(0)
-                continue
+        
+    
+class HeartbeatCaptureLineFlags:
+    def __init__(self, gps: bool, clipping: bool):
+        self.gps = gps
+        self.clipping = clipping
+        pass
 
-            data.append(float(parts[i]))
+    def __repr__(self):
+        return "HeartbeatCaptureLineFlags(%s, %s)" % (self.gps, self.clipping)
+    
+    def to_string(self):
+        flags = ""
+        if self.gps:
+            flags += "G"
+        if self.clipping:
+            flags += "O"
 
-        data = (np.array(data) - 512.0)/512.0
-        return HeartbeatCaptureLine(time, data)
+        return flags
 
+    def parse(text: str):
+        return HeartbeatCaptureLineFlags(gps=(text.find("G") != -1), clipping=(text.find("O") != -1))
     
 class HeartbeatCaptureFileInfo:
 
@@ -191,3 +207,31 @@ class HeartbeatCaptureFile:
                 self.lines.append(HeartbeatCaptureLine.parse_line(line))
 
 
+
+
+def parse_line(text: str) -> HeartbeatCaptureLine:
+        parts = text.split(",")
+        parts_time = float(parts[0])
+        parts_flags = HeartbeatCaptureLineFlags.parse(parts[1])
+        parts_sample_rate = float(parts[2])
+        parts_lat = float(parts[3])
+        parts_lon = float(parts[4])
+        parts_elev = float(parts[5])
+        parts_sats = int(parts[6])
+        parts_speed = float(parts[7])
+        parts_angle = float(parts[8])
+
+        data = [int(x) for x in parts[9:]]
+
+        capture_line = HeartbeatCaptureLine(datetime.utcfromtimestamp(parts_time), data)
+
+        capture_line.flags = parts_flags
+        capture_line.sample_rate = parts_sample_rate
+        capture_line.lat = parts_lat
+        capture_line.lon = parts_lon
+        capture_line.elev = parts_elev
+        capture_line.satellites = parts_sats
+        capture_line.speed = parts_speed
+        capture_line.angle = parts_angle
+
+        return capture_line
