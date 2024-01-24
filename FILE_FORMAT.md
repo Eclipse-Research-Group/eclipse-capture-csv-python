@@ -43,19 +43,27 @@ Each line of metadata consists of a metadata key, followed by one or more tab ch
 
 Immediately following the header are lines of data, separated by a line feed `\n` (ASCII `0xA`).
 
-### Data format
-Each line will follow this format:
+### Data Format
+
+Each line in the data follows this format:
+
+
 ```
-<GPS_TIME>,<GPS_LAT>,<GPS_LONG>,<GPS_ELEV>,<FLAGS>,<CHECKSUM>,[DATA...]\n
+`<GPS_TIME>,<FLAGS>,<SAMPLE_RATE>,<GPS_LAT>,<GPS_LONG>,<GPS_ELEV>,<SATS>,<SPEED>,<ANGLE>,[DATA...]\n`
 ```
 
-Certainly, here's a revised version:
-- `GPS_TIME`: The number of seconds that have passed since the Unix Epoch (midnight, January 1, 1970) as a decimal value.
-- `GPS_LAT`: The latitude expressed in decimal degrees.
-- `GPS_LONG`: The longitude expressed in decimal degrees.
-- `GPS_ELEV`: The elevation measured in meters.
-- `FLAGS`: *To be determined (TODO)*
-- `CHECKSUM`: The outcome of performing a bitwise XOR operation on each data point, resulting in a 16-bit number.
+*   `GPS_TIME`: The number of seconds that have passed since the Unix Epoch (midnight, January 1, 1970) as a floating-point decimal value.
+*   `FLAGS`: A set of flags (specific format to be determined by `HeartbeatCaptureLineFlags.parse` method).
+*   `SAMPLE_RATE`: The rate at which data samples are collected, expressed as a floating-point number.
+*   `GPS_LAT`: The latitude expressed in decimal degrees.
+*   `GPS_LONG`: The longitude expressed in decimal degrees.
+*   `GPS_ELEV`: The elevation measured in meters.
+*   `SATS`: The number of satellites in view, as an integer.
+*   `SPEED`: The speed at which the object is moving, expressed in the relevant units (to be determined), as a floating-point number.
+*   `ANGLE`: The angle of movement or direction, expressed in degrees as a floating-point number.
+*   `[DATA...]`: Additional data points, represented as a series of integers.
+
+This format assumes that the string being parsed by `parse_line` is properly formatted according to these specifications. Each element in the line corresponds to a property of the `HeartbeatCaptureLine` object created by the function.
 
 
 ## Example file

@@ -18,7 +18,7 @@ class HeartbeatCaptureWriter:
         self.files = [HeartbeatCaptureWriterFile(self.capture_id, 0)]
 
     def __del__(self):
-        if self.open:
+        if self.open and self.files[-1].has_written:
             self.write_header()
             self.open = False
 
@@ -106,10 +106,10 @@ class HeartbeatCaptureWriterFile:
         return "HeartbeatCaptureWriterFile(%s, %s, %s)" % (self.capture_id, self.index, self.lines) 
 
     def get_header_filename(self):
-        return f"hbcapture_{self.capture_id}_HEADER_{self.index}"
+        return f"hbcapture_{self.capture_id}_HEADER_{self.index}.txt"
     
     def get_data_filename(self):
-        return f"hbcapture_{self.capture_id}_DATA_{self.index}"
+        return f"hbcapture_{self.capture_id}_DATA_{self.index}.txt"
     
 
 class HeartbeatCaptureWriterPackager:

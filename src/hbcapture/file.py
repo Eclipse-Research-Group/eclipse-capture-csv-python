@@ -9,10 +9,27 @@ class HeartbeatCaptureLine:
     def __init__(self, time: datetime, data):
         self.time = time
         self.data = data
+        self.flags = HeartbeatCaptureLineFlags(False, False)
+        self.sample_rate = 12345
+        self.lat = 0
+        self.lon = 0
+        self.elev = 0
+        self.satellites = 0
+        self.speed = 0
+        self.angle = 0
 
     def generate_line(self) -> str:
-        # data = (self.data * 512) + 512
-        return "%f," % self.time.timestamp() + ",".join([str(x) for x in self.data])
+        return "{time:.6f},{flags},{sample_rate},{lat},{lon},{elev},{satellites},{speed},{angle},".format(
+            time=self.time.timestamp(),
+            flags=self.flags.to_string(),
+            sample_rate=self.sample_rate,
+            lat=self.lat,
+            lon=self.lon,
+            elev=self.elev,
+            satellites=self.satellites,
+            speed=self.speed,
+            angle=self.angle
+        ) + ",".join([str(x) for x in self.data])
     
     def to_array(self) -> np.ndarray: 
         return np.array(self.data)
