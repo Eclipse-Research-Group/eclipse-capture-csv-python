@@ -1,63 +1,80 @@
-import os
-import uuid
+import logging
 import re
-import pandas as pd
-from .file import HeartbeatCaptureFileInfo, HeartbeatCaptureFile
+from datetime import datetime
+from pytz import timezone
+import numpy as np
+import uuid
+import os
+from hbcapture.data import DataPoint
 
-class CaptureNotFoundException(Exception):
-    pass
+class CaptureFileMetadata:
+    METADATA_START = "## BEGIN METADATA ##"
+    METADATA_END = "## END METADATA ##"
+    PATTERN_METADATA_START = r"## BEGIN METADATA ##"
+    PATTERN_METADATA_END = r"## END METADATA ##"
 
-class HeartbeatCapture:
-
-    FILE_PATTERN = r"(\d{8}_\d{6})-(\d{8}_\d{6})_([A-Z]{2}\d{4})_([0-9a-fA-F]{8})"
-
-    def __init__(self, root_dir: str, capture_id: uuid.UUID, scan_on_init: bool = False):
-        self.root_dir = root_dir
+    def __init__(self, capture_id: uuid.UUID, sample_rate: float):
         self.capture_id = capture_id
-        self.files = []
-        if scan_on_init:
-            self.scan()
+        self.sample_rate = sample_rate
+        self.metadata = {}
 
+    def set_metadata(self, key: str, value: str):
+        self.metadata[key] = value
 
-    def scan(self):
-        """
-        Scans the root directory for capture files matching the specified capture ID.
-        """
-        print(f"Scanning {self.root_dir} for capture {self.capture_id}")
-        
-        ls = os.listdir(self.root_dir)
+    def get_metadata(self, key: str):
+        return self.metadata[key]
 
-        for file in ls:
-            match = re.match(HeartbeatCapture.FILE_PATTERN, file)
-            if match is None:
-                continue
+    def to_string(self) -> str:
+        string = ""
+        string += CaptureFileMetadata.METADATA_START + "\n"
+        string += f"# CAPTURE_ID\t\t\t{self.capture_id}\n"
+        string += f"# SAMPLE_RATE\t\t\t{self.sample_rate}\n"
+        for key, value in self.metadata.items():
+            tab_count = 4 - (len(key) - 8) / 4 
+            tabs = "\t" * int(tab_count)
+            string += f"# {key}{tabs}{value}\n"
+        string += CaptureFileMetadata.METADATA_END + "\n"
+        return string
 
-            (start, end, node_id, capture_id) = match.groups()
+    def parse_string(string: str):
+        raise NotImplementedError()
 
-            if capture_id != self.capture_id.hex[:8]:
-                continue
+    def __repr__(self):
+        result = "HeartbeatCaptureFileMetadata {" % (self.capture_id, self.sample_rate)
+        result += "\tcapture_id: %s, " % (self.capture_id)
+        result += "\tsample_rate: %s, " % (self.sample_rate)
+        for key, value in self.metadata.items():
+            result += "\t%s: %s, " % (key, value)
+        result += "}"
+        return result
 
-            self.files.append(HeartbeatCaptureFile.load(os.path.join(self.root_dir, file)))
+class CaptureFileWriter:
+    def __init__(self, path: str, metadata: CaptureFileMetadata):
+        self.path = path
+        self.metadata = metadata
+        self.logger = logging.getLogger("hb.capture.file.writer")
 
-        if len(self.files) == 0:
-            raise CaptureNotFoundException()
+        # TODO check if file exists?
+        if os.path.exists(path):
+            self.logger.warn(f"File {path} already exists")
 
-        self.sample_rate = self.files[0].info.sample_rate
-        self.files.sort(key=lambda x: x.info.start)
-        self.start = self.files[0].info.start
-        self.end = self.files[-1].info.end
-
-    def df_all(self) -> pd.DataFrame:
-        items = []
-
-        for file in self.files:
-            file.load_all_lines()
-            for line in file.lines:
-                items.append((line.time, line.data))
-
-        df = pd.DataFrame(items, columns=["timestamp", "data"])
-
-        return df
+    def __enter__(self):
+        self.init()
+        return self
     
-    def from_capture_file(file_path: str):
-        pass
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    def init(self):
+        self.logger.debug(f"Opening file {self.path}")
+        self.file = open(self.path, 'w')
+
+        self.metadata.set_metadata("CREATED", str(datetime.now()))
+
+        self.file.write(self.metadata.to_string())
+
+    def write_data(self, data: DataPoint):
+        self.file.write(data.generate_line() + "\n")
+
+    def close(self):
+        self.file.close()

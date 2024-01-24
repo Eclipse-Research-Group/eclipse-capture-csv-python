@@ -1,21 +1,21 @@
 import click
 import datetime as dt
-from hbcapture.writer import HeartbeatCaptureWriterPackager
 import numpy as np
 import random
 import uuid
-from . import HeartbeatCaptureFileInfo, HeartbeatCaptureWriter, HeartbeatCaptureLine
 from pytz import timezone
+from hbcapture.capture import CaptureFileWriter, CaptureFileMetadata
+from hbcapture.data import DataPoint, DataPointFlags
 
 @click.group()
 def cli():
     pass
 
 @click.command()
-@click.option("--location", default="Cleveland, OH")
-@click.option("--node", default="ET0001")
+@click.option("--location", default="Earth")
+@click.option("--node", default="SOFTWARE")
 @click.option("--capture_id", default=uuid.uuid4())
-@click.option("--file", default=None)
+@click.option("--file", default="capture.csv")
 @click.argument('start')
 @click.argument('end')
 def generate(location, node, capture_id, file, start, end):
@@ -28,20 +28,16 @@ def generate(location, node, capture_id, file, start, end):
     print("Will generate %d lines" % (dt_end - dt_start).total_seconds())
 
     sample_rate = 21010
-
-    header = HeartbeatCaptureFileInfo(start=dt_start, 
-                                  end=dt_end, 
-                                  capture_id=capture_id,
-                                  node_id=node,
-                                  sample_rate=sample_rate)
+    metadata = CaptureFileMetadata(capture_id, sample_rate)
+    metadata.set_metadata("LOCATION", location)
+    metadata.set_metadata("NODE_ID", node)
     
     node_id = "ET1234"
     capture_id = uuid.uuid4()
     
-    with HeartbeatCaptureWriter("./generated", capture_id, node_id, sample_rate) as writer:
+    with CaptureFileWriter(path=file, metadata=metadata) as writer:
 
         current_time = dt_start
-        sample_rate = header.sample_rate
         pulse_duration = 300
         after_length = 10
 
@@ -61,7 +57,9 @@ def generate(location, node, capture_id, file, start, end):
             
             time = current_time + dt.timedelta(milliseconds= random.random() * 1000 / 2.0)
             # time = current_time
-            writer.write_line(HeartbeatCaptureLine(time, data))
+            writer.write_data(DataPoint(time=time, 
+                                                        sample_rate=sample_rate, 
+                                                        data=data))
 
             current_time += dt.timedelta(seconds = 1)
             counter += 1
@@ -69,52 +67,9 @@ def generate(location, node, capture_id, file, start, end):
             if counter % 3602 == 0:
                 writer.next_file()
                 print("Processed %d lines" % counter)
-
-    packager = HeartbeatCaptureWriterPackager.from_writer(writer)
-    packager.package()
-    # packager.clean_up()
-
-@click.command()
-@click.argument('filename')
-def info(filename):
-    with open(filename, 'r') as f:
-        header_text = ""
-
-        while True:
-            line = f.readline()
-            if not line:
-                break
-
-            if line.startswith("#"):
-                header_text += line
-                continue
-        
-            break
-
-        line_count = 0
-
-        while True:
-            line = f.readline()
-            if not line:
-                break
-
-            line_count += 1
-    
-    info = HeartbeatCaptureFileInfo.parse_metadata(header_text)
-    print(f"Info for file \"{filename}\"")
-    duration = info.end - info.start
-    utc = timezone("UTC")
-    print("{start} -> {end}, total duration is {duration}"
-          .format(start=info.start.astimezone(utc).strftime('%H:%M:%S %B %d, %Y UTC'),
-                    end=info.end.astimezone(utc).strftime('%H:%M:%S %B %d, %Y UTC'),
-                    duration=duration))
-    
-    print(f"Found {line_count} lines")
-
     
 
 cli.add_command(generate)
-cli.add_command(info)
 
 if __name__ == '__main__':
     cli()
