@@ -1,19 +1,19 @@
 import pytest
 import os
-from datetime import datetime
-from pytz import timezone
-from hbcapture import HeartbeatCaptureFile
+import datetime
+import hbcapture
+from hbcapture.data import DataPoint, DataPointFlags
 
-def test_parse_file(datadir):
-    capture_file = HeartbeatCaptureFile.load(os.path.join(datadir, "capture.csv"))
-    assert capture_file
 
-    assert capture_file.info.start == datetime(2024, 4, 8, 15, 13, 45, tzinfo=timezone("EST"))
-    assert capture_file.info.end == datetime(2024, 4, 8, 15, 17, 45, tzinfo=timezone("EST"))
-
-def test_bad_header(datadir):
-    with pytest.raises(Exception) as e:
-        capture_file = HeartbeatCaptureFile.load(os.path.join(datadir, "capture_bad_header.csv"))
-
-    assert e.match("Invalid header")
-
+def test_parse_data():
+    line = "1706257309.000000,,20000.0,0.0,0.0,0.0,0,0.0,0.0,491,491,491,491,491,491,491"
+    dp = hbcapture.data.parse(line)
+    assert(dp.time == datetime.datetime(2024, 1, 26, 8, 21, 49))
+    assert(dp.sample_rate == 20000)
+    assert(dp.flags == DataPointFlags(False, False))
+    assert(dp.data[0] == 491)
+    assert(dp.lat == 0.0)
+    assert(dp.lon == 0.0)
+    assert(dp.elev == 0.0)
+    assert(dp.angle == 0.0)
+    assert(dp.speed == 0.0)

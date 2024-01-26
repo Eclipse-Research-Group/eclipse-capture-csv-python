@@ -57,6 +57,10 @@ class DataPointFlags:
     def parse(text: str):
         return DataPointFlags(gps=(text.find("G") != -1), clipping=(text.find("O") != -1))
     
+    def __eq__(self, other):
+        if isinstance(other, DataPointFlags):
+            return self.gps == other.gps and self.clipping == other.clipping
+        return False
 
 def parse(text: str) -> DataPoint:
         parts = text.split(",")
