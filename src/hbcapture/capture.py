@@ -53,28 +53,43 @@ class CaptureFileWriter:
         self.path = path
         self.metadata = metadata
         self.logger = logging.getLogger("hb.capture.file.writer")
+        self.file = None
 
         # TODO check if file exists?
         if os.path.exists(path):
             self.logger.warn(f"File {path} already exists")
 
     def __enter__(self):
-        self.init()
+        self.open()
         return self
     
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def init(self):
+    def open(self):
         self.logger.debug(f"Opening file {self.path}")
         self.file = open(self.path, 'w')
-
-        self.metadata.set_metadata("CREATED", str(datetime.now()))
-
-        self.file.write(self.metadata.to_string())
+        self.reset_file()
 
     def write_data(self, data: DataPoint):
+        if self.file is None:
+            self.logger.error("File not open")
+            return
         self.file.write(data.generate_line() + "\n")
+    
+    def reset_file(self):
+        if self.file is None:
+            self.logger.error("File not open")
+            return
+        
+        self.file.seek(0)
+        self.file.truncate()
+        self.metadata.set_metadata("CREATED", datetime.utcnow().isoformat())
+        self.file.write(self.metadata.to_string())
 
     def close(self):
+        if self.file is None:
+            self.logger.error("File not open")
+            return
         self.file.close()
+        self.file = None

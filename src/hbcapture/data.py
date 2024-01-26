@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 import numpy as np
 
 class DataPoint:
@@ -72,7 +72,9 @@ def parse(text: str) -> DataPoint:
 
         data = [int(x) for x in parts[9:]]
 
-        capture_line = DataPoint(datetime.utcfromtimestamp(parts_time), data)
+        capture_line = DataPoint(time=datetime.utcfromtimestamp(parts_time),
+                                 sample_rate=parts_sample_rate,
+                                 data=data)
 
         capture_line.flags = parts_flags
         capture_line.sample_rate = parts_sample_rate
